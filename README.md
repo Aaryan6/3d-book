@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Storybook Creator
 
-## Getting Started
+A Next.js application that generates personalized children's storybooks with AI-generated content and illustrations.
 
-First, run the development server:
+## Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- 🤖 **AI Story Generation**: Uses Google Gemini 2.5 Flash to create structured children's stories
+- 🎨 **Consistent Illustration Style**: Generates cartoon-style illustrations using Fal AI (Flux Schnell model)
+- 📖 **Cover Image Generation**: Creates custom cover art for each story
+- 📚 **3D Page Flip**: Interactive book experience with realistic page turning
+- 📱 **Responsive Design**: Works on desktop and mobile devices
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Recent Updates
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Fixed Issues:
+1. **Consistent Illustration Style**: All images now use cartoon illustration style instead of mixed realistic/illustration styles
+2. **Cover Image Generation**: Added AI-generated cover images that display with the story title
+3. **Enhanced Image Prompts**: Improved prompts to ensure child-friendly, whimsical artwork
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Technical Changes:
+- Updated image generation to use Fal AI Flux Schnell model for better consistency
+- Enhanced prompts with explicit style keywords (cartoon illustration, children's book art, digital painting)
+- Added cover image generation workflow
+- Improved frontend to display cover images properly
 
-## Learn More
+## Setup
 
-To learn more about Next.js, take a look at the following resources:
+1. **Install Dependencies**
+   ```bash
+   bun install
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. **Environment Variables**
+   Copy `.env.local.example` to `.env.local` and add your API keys:
+   ```bash
+   cp .env.local.example .env.local
+   ```
+   
+   Then edit `.env.local` with your keys:
+   - `GOOGLE_GENERATIVE_AI_API_KEY`: Get from [Google AI Studio](https://aistudio.google.com/app/apikey)
+   - `FAL_KEY`: Get from [Fal AI Dashboard](https://fal.ai/dashboard/api-keys)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. **Run Development Server**
+   ```bash
+   bun run dev
+   ```
 
-## Deploy on Vercel
+4. **Open in Browser**
+   Navigate to [http://localhost:3000](http://localhost:3000)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## How It Works
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Story Generation**: User enters a prompt (e.g., "A brave mouse who wants to be a chef")
+2. **AI Processing**: 
+   - Gemini 2.5 Flash generates structured story with 6-8 pages
+   - Creates detailed image prompts for each page and cover
+   - Fal AI generates consistent cartoon-style illustrations
+3. **Display**: Shows the complete storybook with interactive page flipping
+
+## Technology Stack
+
+- **Frontend**: Next.js 15, React 19, TypeScript
+- **AI Models**: 
+  - Google Gemini 2.5 Flash (story & prompt generation)
+  - Fal AI Flux Schnell (image generation)
+- **UI Libraries**: page-flip for 3D book effect
+- **Styling**: SCSS with custom animations
+
+## Image Style Consistency
+
+All generated images now follow these guidelines:
+- **Style**: Cartoon illustration, children's book art
+- **Not Realistic**: Explicitly excludes photographic/realistic styles
+- **Color Palette**: Bright, colorful, child-friendly
+- **Artistic Approach**: Hand-drawn look, whimsical, digital painting style
+
+This ensures a cohesive visual experience throughout the storybook.

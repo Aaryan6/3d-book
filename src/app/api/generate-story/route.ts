@@ -28,6 +28,7 @@ const StorySchema = z.object({
 
 interface StoryWithImages extends z.infer<typeof StorySchema> {
   pages: Array<z.infer<typeof StoryPageSchema> & { imageUrl?: string }>;
+  coverImageUrl?: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -62,7 +63,48 @@ export async function POST(request: NextRequest) {
     console.log("Story generated:", story.title);
     console.log("Number of pages:", story.pages.length);
 
-    // Step 2: Generate image prompts for each page
+    // Step 2: Generate cover image
+    console.log('Generating cover image...');
+    let coverImageUrl;
+    try {
+      const coverPromptResult = await generateText({
+        model: google("gemini-2.5-flash"),
+        prompt: `Create a detailed cover image prompt for this children's storybook:
+        
+        Title: ${story.title}
+        Genre: ${story.genre}
+        Main Characters: ${story.pages.map(p => p.characters).flat().filter((char, index, arr) => arr.indexOf(char) === index).join(', ')}
+        
+        Generate a prompt for a beautiful, colorful children's book cover illustration. 
+        The style must be: cartoon illustration, digital art, children's book style, whimsical, colorful, hand-drawn look.
+        Include:
+        - Main characters in a welcoming scene
+        - Title placement area (but don't include text)
+        - Warm, inviting colors
+        - Child-friendly artistic style
+        - Storybook cover composition
+        
+        Style keywords: cartoon illustration, children's book art, digital painting, whimsical, colorful, hand-drawn style, not realistic, not photographic.
+        
+        Keep it concise (max 80 words).`,
+      });
+
+      const coverImageResult = await generateImage({
+        model: fal.image("fal-ai/flux/schnell"),
+        prompt: `${coverPromptResult.text}, cartoon illustration style, children's book art, digital painting, whimsical, colorful, hand-drawn look, not realistic, not photographic`,
+        size: "1024x1024",
+      });
+
+      coverImageUrl = `data:image/png;base64,${Buffer.from(
+        coverImageResult.image.uint8Array
+      ).toString("base64")}`;
+      
+      console.log('Cover image generated successfully');
+    } catch (error) {
+      console.error('Error generating cover image:', error);
+    }
+
+    // Step 3: Generate image prompts for each page
     const pagesWithImages = await Promise.all(
       story.pages.map(async (page, index) => {
         try {
@@ -71,7 +113,7 @@ export async function POST(request: NextRequest) {
           // Generate a detailed image prompt based on the page content
           const imagePromptResult = await generateText({
             model: google("gemini-2.5-flash"),
-            prompt: `Create a detailed, child-friendly image prompt for this storybook page:
+            prompt: `Create a detailed, child-friendly illustration prompt for this storybook page:
             
             Title: ${page.title}
             Content: ${page.content}
@@ -79,28 +121,33 @@ export async function POST(request: NextRequest) {
             Setting: ${page.setting}
             Mood: ${page.mood}
             
-            Generate a prompt for a high-quality, colorful, child-friendly illustration that would perfectly capture this scene. 
-            The style should be warm, inviting, and suitable for children's books. Include details about:
+            Generate a prompt for a colorful children's book illustration that captures this scene. 
+            The style must be: cartoon illustration, digital art, children's book style, whimsical, colorful, hand-drawn look.
+            Include details about:
             - The characters and their expressions
             - The setting and environment
             - Colors and lighting that match the mood
-            - Any important objects or elements from the story
+            - Important objects or elements from the story
             
-            Keep it descriptive but concise (max 100 words).`,
+            Style keywords: cartoon illustration, children's book art, digital painting, whimsical, colorful, hand-drawn style, not realistic, not photographic.
+            
+            Keep it descriptive but concise (max 80 words).`,
           });
 
-          const imagePrompt = imagePromptResult.text;
+          const basePrompt = imagePromptResult.text;
+          const enhancedPrompt = `${basePrompt}, cartoon illustration style, children's book art, digital painting, whimsical, colorful, hand-drawn look, not realistic, not photographic`;
+          
           console.log(
-            `Image prompt for page ${index + 1}: ${imagePrompt.substring(
+            `Image prompt for page ${index + 1}: ${enhancedPrompt.substring(
               0,
               100
             )}...`
           );
 
-          // Step 3: Generate the actual image using Fal
+          // Step 4: Generate the actual image using Fal
           const imageResult = await generateImage({
-            model: fal.image("fal-ai/qwen-image"),
-            prompt: imagePrompt,
+            model: fal.image("fal-ai/flux/schnell"),
+            prompt: enhancedPrompt,
             size: "1024x1024",
           });
 
@@ -112,7 +159,7 @@ export async function POST(request: NextRequest) {
           return {
             ...page,
             imageUrl: base64Image,
-            imagePrompt, // Include for debugging/reference
+            imagePrompt: enhancedPrompt, // Include for debugging/reference
           };
         } catch (error) {
           console.error(`Error generating image for page ${index + 1}:`, error);
@@ -128,6 +175,7 @@ export async function POST(request: NextRequest) {
     const finalStory = {
       ...story,
       pages: pagesWithImages,
+      coverImageUrl,
     };
 
     console.log("Story generation complete!");

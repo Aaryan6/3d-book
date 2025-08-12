@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { PageFlip } from "page-flip";
+import { PageFlip, SizeType } from "page-flip";
 import "./story.scss";
 
 interface StoryPage {
@@ -19,6 +19,7 @@ interface Story {
   pages: StoryPage[];
   genre: string;
   targetAge: string;
+  coverImageUrl?: string;
 }
 
 export default function Page() {
@@ -45,6 +46,7 @@ export default function Page() {
       const pageFlip = new PageFlip(flipBookRef.current, {
         width: 400,
         height: 300,
+        size: SizeType.STRETCH,
         minWidth: 300,
         maxWidth: 600,
         minHeight: 200,
@@ -199,10 +201,28 @@ export default function Page() {
         <div className="flip-book" ref={flipBookRef}>
           <div className="page page-cover page-cover-top" data-density="hard">
             <div className="page-content">
-              <h1>{story?.title || "Generated Story"}</h1>
-              <p className="subtitle">
-                {story?.genre} • Ages {story?.targetAge}
-              </p>
+              {story?.coverImageUrl ? (
+                <div className="cover-with-image">
+                  <img
+                    src={story.coverImageUrl}
+                    alt={`Cover for ${story.title}`}
+                    className="cover-image"
+                  />
+                  <div className="cover-text">
+                    <h1>{story.title}</h1>
+                    <p className="subtitle">
+                      {story.genre} • Ages {story.targetAge}
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <h1>{story?.title || "Generated Story"}</h1>
+                  <p className="subtitle">
+                    {story?.genre} • Ages {story?.targetAge}
+                  </p>
+                </>
+              )}
             </div>
           </div>
 
@@ -231,18 +251,6 @@ export default function Page() {
                   </div>
                   <div className="page-number">{page.pageNumber}</div>
                 </div>
-              </div>
-              <div className="page-right">
-                <div className="story-text">
-                  <p>
-                    Ganak realized his mistake and felt ashamed. From that day
-                    on, he learned that true friendship means protecting each
-                    other, not betraying trust for others&#39; selfish desires.
-                    And Kavi, being wise and kind, continued to share his
-                    mangoes - but only from the safety of his tree.
-                  </p>
-                </div>
-                <div className="page-number">8</div>
               </div>
             </div>
           ))}

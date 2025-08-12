@@ -233,6 +233,40 @@
     &.page-cover-bottom {
       box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
     }
+
+    .cover-with-image {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      .cover-image {
+        width: 100%;
+        height: 70%;
+        object-fit: cover;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        margin-bottom: 20px;
+      }
+
+      .cover-text {
+        text-align: center;
+        
+        h1 {
+          font-size: 2.2rem;
+          margin: 0 0 10px 0;
+          text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .subtitle {
+          font-size: 1.1rem;
+          margin: 0;
+        }
+      }
+    }
   }
 }
 
@@ -286,6 +320,22 @@
 
       .subtitle {
         font-size: 1rem !important;
+      }
+
+      .cover-with-image {
+        .cover-image {
+          height: 60%;
+        }
+
+        .cover-text {
+          h1 {
+            font-size: 1.8rem !important;
+          }
+
+          .subtitle {
+            font-size: 0.9rem !important;
+          }
+        }
       }
     }
   }
