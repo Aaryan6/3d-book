@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { PageFlip } from "page-flip";
 import type { SizeType } from "page-flip";
 import "./story.scss";
@@ -249,11 +249,12 @@ export default function Page() {
             </div>
           </div>
 
-          {/* Story Pages */}
+          {/* Story Pages - Split into separate left and right pages */}
           {story?.pages.map((page) => (
-            <div key={page.pageNumber} className="page page-spread">
-              <div className="page-content page-content-mobile">
-                <div className="page-left">
+            <React.Fragment key={page.pageNumber}>
+              {/* Left Page - Image */}
+              <div className="page page-left-only">
+                <div className="page-content">
                   <div className="story-illustration">
                     {page.imageUrl ? (
                       <img
@@ -268,7 +269,11 @@ export default function Page() {
                     )}
                   </div>
                 </div>
-                <div className="page-right">
+              </div>
+              
+              {/* Right Page - Text */}
+              <div className="page page-right-only">
+                <div className="page-content">
                   <h3 className="page-title">{page.title}</h3>
                   <div className="story-text">
                     <p>{page.content}</p>
@@ -276,7 +281,7 @@ export default function Page() {
                   <div className="page-number">{page.pageNumber}</div>
                 </div>
               </div>
-            </div>
+            </React.Fragment>
           ))}
 
           {/* End Page */}

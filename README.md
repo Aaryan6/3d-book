@@ -8,6 +8,7 @@ A Next.js application that generates personalized children's storybooks with AI-
 - 🎨 **Consistent Illustration Style**: Generates cartoon-style illustrations using Fal AI (Flux Schnell model)
 - 📖 **Cover Image Generation**: Creates custom cover art for each story
 - 📚 **3D Page Flip**: Interactive book experience with realistic page turning
+- 📖 **Traditional Book Layout**: Images on left pages, text on right pages (like real books)
 - 📱 **Responsive Design**: Works on desktop and mobile devices
 
 ## Recent Updates
@@ -19,12 +20,14 @@ A Next.js application that generates personalized children's storybooks with AI-
 4. **LocalStorage Persistence**: Stories are now saved and restored after page reload
 5. **Mobile Text Visibility**: Fixed mobile view to properly display story text alongside images
 6. **Single Page Content**: Cover and ending pages now display properly as single-page content
+7. **Traditional Book Layout**: Changed to separate left (image) and right (text) pages like real books
 
 ### Technical Changes:
 - **Image Consistency**: Added unified visual theme directive ensuring watercolor illustration consistency
 - **LocalStorage Integration**: Stories persist across page reloads and browser sessions
 - **Mobile Optimization**: Fixed CSS to ensure text visibility on mobile devices
 - **Page Layout**: Enhanced page content handling for single-page (cover/end) content
+- **Traditional Book Structure**: Split story content into separate left (image) and right (text) pages
 - **Character Consistency**: Improved prompts to maintain same character appearance across all pages
 - Added cover image generation workflow with proper frontend integration
 

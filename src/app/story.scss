@@ -169,6 +169,92 @@
     }
   }
 
+  // Individual page styles for left/right pages
+  &.page-left-only {
+    .page-content {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(
+        135deg,
+        #a8e6cf 0%,
+        #7fcdcd 50%,
+        #81c784 100%
+      );
+      padding: 20px;
+
+      .story-illustration {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        width: 100%;
+
+        .illustration-placeholder {
+          font-size: 4rem;
+          text-align: center;
+          line-height: 1.2;
+          filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        .generated-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+      }
+    }
+  }
+
+  &.page-right-only {
+    .page-content {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 40px 30px;
+      background: #fefefe;
+
+      .page-title {
+        font-family: "Georgia", serif;
+        font-size: 1.4rem;
+        color: #8b4513;
+        margin: 0 0 20px 0;
+        font-weight: bold;
+        text-align: center;
+      }
+
+      .story-text {
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+
+        p {
+          font-family: "Georgia", serif;
+          font-size: 1.2rem;
+          line-height: 1.8;
+          color: #2d2d2d;
+          margin: 0;
+        }
+      }
+
+      .page-number {
+        text-align: center;
+        font-family: "Georgia", serif;
+        font-size: 0.9rem;
+        color: #666;
+        margin-top: 20px;
+      }
+    }
+  }
+
   &.--left {
     border-right: 0;
     box-shadow: inset -7px 0 30px -7px rgba(0, 0, 0, 0.4);
@@ -456,6 +542,50 @@
             margin-top: 10px;
             color: #666;
           }
+        }
+      }
+    }
+
+    // Mobile styles for individual pages
+    &.page-left-only {
+      .page-content {
+        min-height: 300px;
+        padding: 15px;
+
+        .story-illustration {
+          .illustration-placeholder {
+            font-size: 3rem;
+          }
+
+          .generated-image {
+            max-height: 250px;
+            object-fit: contain;
+          }
+        }
+      }
+    }
+
+    &.page-right-only {
+      .page-content {
+        min-height: 300px;
+        padding: 20px 15px;
+
+        .page-title {
+          font-size: 1.1rem;
+          margin-bottom: 15px;
+        }
+
+        .story-text {
+          p {
+            font-size: 1rem;
+            line-height: 1.6;
+            text-align: left;
+          }
+        }
+
+        .page-number {
+          font-size: 0.8rem;
+          margin-top: 15px;
         }
       }
     }
