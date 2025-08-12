@@ -13,15 +13,20 @@ A Next.js application that generates personalized children's storybooks with AI-
 ## Recent Updates
 
 ### Fixed Issues:
-1. **Consistent Illustration Style**: All images now use cartoon illustration style instead of mixed realistic/illustration styles
+1. **Consistent Illustration Style**: All images now use watercolor illustration theme with unified visual consistency
 2. **Cover Image Generation**: Added AI-generated cover images that display with the story title
 3. **Enhanced Image Prompts**: Improved prompts to ensure child-friendly, whimsical artwork
+4. **LocalStorage Persistence**: Stories are now saved and restored after page reload
+5. **Mobile Text Visibility**: Fixed mobile view to properly display story text alongside images
+6. **Single Page Content**: Cover and ending pages now display properly as single-page content
 
 ### Technical Changes:
-- Updated image generation to use Fal AI Flux Schnell model for better consistency
-- Enhanced prompts with explicit style keywords (cartoon illustration, children's book art, digital painting)
-- Added cover image generation workflow
-- Improved frontend to display cover images properly
+- **Image Consistency**: Added unified visual theme directive ensuring watercolor illustration consistency
+- **LocalStorage Integration**: Stories persist across page reloads and browser sessions
+- **Mobile Optimization**: Fixed CSS to ensure text visibility on mobile devices
+- **Page Layout**: Enhanced page content handling for single-page (cover/end) content
+- **Character Consistency**: Improved prompts to maintain same character appearance across all pages
+- Added cover image generation workflow with proper frontend integration
 
 ## Setup
 
@@ -66,12 +71,23 @@ A Next.js application that generates personalized children's storybooks with AI-
 - **UI Libraries**: page-flip for 3D book effect
 - **Styling**: SCSS with custom animations
 
-## Image Style Consistency
+## Key Features
 
-All generated images now follow these guidelines:
-- **Style**: Cartoon illustration, children's book art
-- **Not Realistic**: Explicitly excludes photographic/realistic styles
-- **Color Palette**: Bright, colorful, child-friendly
-- **Artistic Approach**: Hand-drawn look, whimsical, digital painting style
+### Image Style Consistency
+All generated images follow a unified theme:
+- **Style**: Watercolor illustration with soft pastel colors
+- **Character Consistency**: Same appearance, clothes, and features across all pages
+- **Artistic Approach**: Hand-painted feel with clean outlines and rounded proportions
+- **Quality Control**: Avoids text, distortions, or photorealistic elements
 
-This ensures a cohesive visual experience throughout the storybook.
+### Data Persistence
+- **Auto-Save**: Stories automatically save to localStorage
+- **Resume Reading**: Reload the page to continue where you left off
+- **Clear Data**: Use "New Story" button to clear saved data and start fresh
+
+### Mobile Experience
+- **Responsive Design**: Optimized layouts for all screen sizes
+- **Text Visibility**: Story text clearly visible alongside illustrations on mobile
+- **Touch Navigation**: Smooth page flipping on touch devices
+
+This ensures a cohesive, professional storybook experience across all devices.

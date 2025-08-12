@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { PageFlip, SizeType } from "page-flip";
+import { PageFlip } from "page-flip";
+import type { SizeType } from "page-flip";
 import "./story.scss";
 
 interface StoryPage {
@@ -36,6 +37,21 @@ export default function Page() {
   );
   const [showGenerator, setShowGenerator] = useState(true);
 
+  // Load story from localStorage on mount
+  useEffect(() => {
+    const savedStory = localStorage.getItem("ai-storybook");
+    if (savedStory) {
+      try {
+        const parsedStory = JSON.parse(savedStory);
+        setStory(parsedStory);
+        setShowGenerator(false);
+      } catch (error) {
+        console.error("Error parsing saved story:", error);
+        localStorage.removeItem("ai-storybook");
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (
       flipBookRef.current &&
@@ -46,7 +62,7 @@ export default function Page() {
       const pageFlip = new PageFlip(flipBookRef.current, {
         width: 400,
         height: 300,
-        size: SizeType.STRETCH,
+        size: "stretch" as SizeType,
         minWidth: 300,
         maxWidth: 600,
         minHeight: 200,
@@ -108,6 +124,10 @@ export default function Page() {
       }
 
       const generatedStory = await response.json();
+
+      // Save to localStorage
+      localStorage.setItem("ai-storybook", JSON.stringify(generatedStory));
+
       setStory(generatedStory);
       setShowGenerator(false);
     } catch (error) {
@@ -123,6 +143,8 @@ export default function Page() {
     setStory(null);
     setPrompt("");
     pageFlipRef.current = null;
+    // Clear localStorage
+    localStorage.removeItem("ai-storybook");
   };
 
   if (showGenerator) {
@@ -199,6 +221,7 @@ export default function Page() {
       </div>
       <div className="book-container">
         <div className="flip-book" ref={flipBookRef}>
+          {/* Cover Page */}
           <div className="page page-cover page-cover-top" data-density="hard">
             <div className="page-content">
               {story?.coverImageUrl ? (
@@ -226,9 +249,10 @@ export default function Page() {
             </div>
           </div>
 
+          {/* Story Pages */}
           {story?.pages.map((page) => (
             <div key={page.pageNumber} className="page page-spread">
-              <div className="page-content">
+              <div className="page-content page-content-mobile">
                 <div className="page-left">
                   <div className="story-illustration">
                     {page.imageUrl ? (
@@ -255,6 +279,7 @@ export default function Page() {
             </div>
           ))}
 
+          {/* End Page */}
           <div
             className="page page-cover page-cover-bottom"
             data-density="hard"

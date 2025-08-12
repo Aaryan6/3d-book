@@ -42,6 +42,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Unified visual theme to keep all images consistent and avoid buggy outputs
+    const IMAGE_STYLE_DIRECTIVE = `
+      Consistent children's book watercolor illustration theme with soft pastel colors and gentle lighting; 
+      hand-painted feel with clean outlines; cute rounded proportions; consistent character designs across all pages 
+      (same clothes, colors, hair, and species); single cohesive art style throughout. Avoid text, letters, 
+      watermarks, signatures, frames, borders, photorealism, 3D rendering, pixelation, glitches, artifacts, 
+      distorted faces, extra fingers, extra limbs, or deformed anatomy.
+    `
+      .replace(/\s+/g, " ")
+      .trim();
+
     // Step 1: Generate the story structure using Gemini 2.5 Flash
     console.log("Generating story structure...");
     const storyResult = await generateObject({
@@ -64,44 +75,46 @@ export async function POST(request: NextRequest) {
     console.log("Number of pages:", story.pages.length);
 
     // Step 2: Generate cover image
-    console.log('Generating cover image...');
+    console.log("Generating cover image...");
     let coverImageUrl;
     try {
       const coverPromptResult = await generateText({
         model: google("gemini-2.5-flash"),
-        prompt: `Create a detailed cover image prompt for this children's storybook:
+        prompt: `Create a detailed cover image prompt for this children's storybook. Use a single, consistent visual theme for the entire book as specified below.
         
         Title: ${story.title}
         Genre: ${story.genre}
-        Main Characters: ${story.pages.map(p => p.characters).flat().filter((char, index, arr) => arr.indexOf(char) === index).join(', ')}
+        Main Characters: ${story.pages
+          .map((p) => p.characters)
+          .flat()
+          .filter((char, index, arr) => arr.indexOf(char) === index)
+          .join(", ")}
         
-        Generate a prompt for a beautiful, colorful children's book cover illustration. 
-        The style must be: cartoon illustration, digital art, children's book style, whimsical, colorful, hand-drawn look.
+         Generate a prompt for a beautiful, colorful children's book cover illustration.
+         Enforce this exact visual theme (do not deviate across pages): ${IMAGE_STYLE_DIRECTIVE}
         Include:
         - Main characters in a welcoming scene
         - Title placement area (but don't include text)
         - Warm, inviting colors
-        - Child-friendly artistic style
-        - Storybook cover composition
-        
-        Style keywords: cartoon illustration, children's book art, digital painting, whimsical, colorful, hand-drawn style, not realistic, not photographic.
+         - Child-friendly artistic style with consistent character appearance
+         - Storybook cover composition matching the theme
         
         Keep it concise (max 80 words).`,
       });
 
       const coverImageResult = await generateImage({
         model: fal.image("fal-ai/flux/schnell"),
-        prompt: `${coverPromptResult.text}, cartoon illustration style, children's book art, digital painting, whimsical, colorful, hand-drawn look, not realistic, not photographic`,
+        prompt: `${coverPromptResult.text}. Visual theme: ${IMAGE_STYLE_DIRECTIVE}`,
         size: "1024x1024",
       });
 
       coverImageUrl = `data:image/png;base64,${Buffer.from(
         coverImageResult.image.uint8Array
       ).toString("base64")}`;
-      
-      console.log('Cover image generated successfully');
+
+      console.log("Cover image generated successfully");
     } catch (error) {
-      console.error('Error generating cover image:', error);
+      console.error("Error generating cover image:", error);
     }
 
     // Step 3: Generate image prompts for each page
@@ -113,7 +126,7 @@ export async function POST(request: NextRequest) {
           // Generate a detailed image prompt based on the page content
           const imagePromptResult = await generateText({
             model: google("gemini-2.5-flash"),
-            prompt: `Create a detailed, child-friendly illustration prompt for this storybook page:
+            prompt: `Create a detailed, child-friendly illustration prompt for this storybook page. Use a single, consistent visual theme for the entire book as specified below.
             
             Title: ${page.title}
             Content: ${page.content}
@@ -121,22 +134,21 @@ export async function POST(request: NextRequest) {
             Setting: ${page.setting}
             Mood: ${page.mood}
             
-            Generate a prompt for a colorful children's book illustration that captures this scene. 
-            The style must be: cartoon illustration, digital art, children's book style, whimsical, colorful, hand-drawn look.
+             Generate a prompt for a colorful children's book illustration that captures this scene.
+             Enforce this exact visual theme (do not deviate across pages): ${IMAGE_STYLE_DIRECTIVE}
+             Ensure character consistency (same clothing, colors, and features) and coherent proportions.
             Include details about:
             - The characters and their expressions
             - The setting and environment
             - Colors and lighting that match the mood
             - Important objects or elements from the story
             
-            Style keywords: cartoon illustration, children's book art, digital painting, whimsical, colorful, hand-drawn style, not realistic, not photographic.
-            
             Keep it descriptive but concise (max 80 words).`,
           });
 
           const basePrompt = imagePromptResult.text;
-          const enhancedPrompt = `${basePrompt}, cartoon illustration style, children's book art, digital painting, whimsical, colorful, hand-drawn look, not realistic, not photographic`;
-          
+          const enhancedPrompt = `${basePrompt}. Visual theme: ${IMAGE_STYLE_DIRECTIVE}`;
+
           console.log(
             `Image prompt for page ${index + 1}: ${enhancedPrompt.substring(
               0,
