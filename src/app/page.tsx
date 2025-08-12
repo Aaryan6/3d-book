@@ -45,7 +45,6 @@ export default function Page() {
       const pageFlip = new PageFlip(flipBookRef.current, {
         width: 400,
         height: 300,
-        size: "stretch",
         minWidth: 300,
         maxWidth: 600,
         minHeight: 200,
@@ -58,18 +57,19 @@ export default function Page() {
       pageFlip.loadFromHTML(document.querySelectorAll(".page"));
 
       setTotalPages(pageFlip.getPageCount());
-      setOrientation(pageFlip.getOrientation());
+      setOrientation(String(pageFlip.getOrientation()));
 
       pageFlip.on("flip", (e) => {
-        setCurrentPage(e.data + 1);
+        const pageIndex = typeof e.data === "number" ? e.data : 0;
+        setCurrentPage(pageIndex + 1);
       });
 
       pageFlip.on("changeState", (e) => {
-        setPageState(e.data);
+        setPageState(String(e.data));
       });
 
       pageFlip.on("changeOrientation", (e) => {
-        setOrientation(e.data);
+        setOrientation(String(e.data));
       });
 
       pageFlipRef.current = pageFlip;
@@ -129,8 +129,8 @@ export default function Page() {
         <div className="generator-container">
           <h1>AI Storybook Creator</h1>
           <p>
-            Enter a prompt to generate a personalized children's storybook with
-            AI-generated illustrations!
+            Enter a prompt to generate a personalized children&#39;s storybook
+            with AI-generated illustrations!
           </p>
 
           <div className="prompt-input-container">
@@ -206,7 +206,7 @@ export default function Page() {
             </div>
           </div>
 
-          {story?.pages.map((page, index) => (
+          {story?.pages.map((page) => (
             <div key={page.pageNumber} className="page page-spread">
               <div className="page-content">
                 <div className="page-left">
@@ -237,9 +237,9 @@ export default function Page() {
                   <p>
                     Ganak realized his mistake and felt ashamed. From that day
                     on, he learned that true friendship means protecting each
-                    other, not betraying trust for others' selfish desires. And
-                    Kavi, being wise and kind, continued to share his mangoes -
-                    but only from the safety of his tree.
+                    other, not betraying trust for others&#39; selfish desires.
+                    And Kavi, being wise and kind, continued to share his
+                    mangoes - but only from the safety of his tree.
                   </p>
                 </div>
                 <div className="page-number">8</div>
