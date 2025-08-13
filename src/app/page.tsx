@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { PageFlip } from "page-flip";
 import type { SizeType } from "page-flip";
 import "./story.scss";
+import "./settings.scss";
 
 interface StoryPage {
   pageNumber: number;
@@ -35,19 +36,25 @@ export default function Page() {
   const [prompt, setPrompt] = useState(
     "A boy and a dog meet at street and became best friends"
   );
+  const [pageCount, setPageCount] = useState(5);
   const [showGenerator, setShowGenerator] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
+  const [apiKeys, setApiKeys] = useState({
+    geminiKey: "",
+    falKey: "",
+  });
 
-  // Load story from localStorage on mount
+  // Load API keys from localStorage on mount
   useEffect(() => {
-    const savedStory = localStorage.getItem("ai-storybook");
-    if (savedStory) {
+    const savedKeys = localStorage.getItem("ai-storybook-keys");
+
+    if (savedKeys) {
       try {
-        const parsedStory = JSON.parse(savedStory);
-        setStory(parsedStory);
-        setShowGenerator(false);
+        const parsedKeys = JSON.parse(savedKeys);
+        setApiKeys(parsedKeys);
       } catch (error) {
-        console.error("Error parsing saved story:", error);
-        localStorage.removeItem("ai-storybook");
+        console.error("Error parsing saved keys:", error);
+        localStorage.removeItem("ai-storybook-keys");
       }
     }
   }, []);
@@ -74,12 +81,25 @@ export default function Page() {
 
       pageFlip.loadFromHTML(document.querySelectorAll(".page"));
 
-      setTotalPages(pageFlip.getPageCount());
+      // Set total pages as: Cover + Story pages + End = story.pages.length + 2
+      setTotalPages(story.pages.length + 2);
       setOrientation(String(pageFlip.getOrientation()));
 
       pageFlip.on("flip", (e) => {
         const pageIndex = typeof e.data === "number" ? e.data : 0;
-        setCurrentPage(pageIndex + 1);
+        // Account for structure: Cover (0), Hidden (1), Story pairs (2,3), (4,5), ..., Hidden (n-1), End (n)
+        let displayPage = 1;
+        
+        if (pageIndex <= 1) {
+          displayPage = 1; // Cover page (index 0 or 1)
+        } else if (pageIndex >= story.pages.length * 2 + 2) {
+          displayPage = story.pages.length + 2; // End page
+        } else {
+          // Story pages: subtract 2 for cover+hidden, then divide by 2, then add 2 for cover+first story page
+          displayPage = Math.floor((pageIndex - 2) / 2) + 2;
+        }
+        
+        setCurrentPage(displayPage);
       });
 
       pageFlip.on("changeState", (e) => {
@@ -109,6 +129,15 @@ export default function Page() {
   const generateStory = async () => {
     if (!prompt.trim()) return;
 
+    // Check if API keys are provided
+    if (!apiKeys.geminiKey || !apiKeys.falKey) {
+      alert(
+        "Please configure your API keys in the settings before generating a story."
+      );
+      setShowSettings(true);
+      return;
+    }
+
     setIsGenerating(true);
     try {
       const response = await fetch("/api/generate-story", {
@@ -116,7 +145,14 @@ export default function Page() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({
+          prompt,
+          pageCount,
+          apiKeys: {
+            geminiKey: apiKeys.geminiKey,
+            falKey: apiKeys.falKey,
+          },
+        }),
       });
 
       if (!response.ok) {
@@ -124,9 +160,6 @@ export default function Page() {
       }
 
       const generatedStory = await response.json();
-
-      // Save to localStorage
-      localStorage.setItem("ai-storybook", JSON.stringify(generatedStory));
 
       setStory(generatedStory);
       setShowGenerator(false);
@@ -143,9 +176,98 @@ export default function Page() {
     setStory(null);
     setPrompt("");
     pageFlipRef.current = null;
-    // Clear localStorage
-    localStorage.removeItem("ai-storybook");
   };
+
+  const saveApiKeys = () => {
+    localStorage.setItem("ai-storybook-keys", JSON.stringify(apiKeys));
+    setShowSettings(false);
+  };
+
+  const handleKeyChange = (key: "geminiKey" | "falKey", value: string) => {
+    setApiKeys((prev) => ({ ...prev, [key]: value }));
+  };
+
+  // Settings Dialog should take priority over generator
+  if (showSettings) {
+    return (
+      <div className="story-container">
+        <div className="settings-container">
+          <h1>API Settings</h1>
+          <p>Enter your API keys to generate AI stories and illustrations.</p>
+
+          <div className="settings-form">
+            <div className="input-group">
+              <label htmlFor="gemini-key">Google Gemini API Key</label>
+              <input
+                id="gemini-key"
+                type="password"
+                value={apiKeys.geminiKey}
+                onChange={(e) => handleKeyChange("geminiKey", e.target.value)}
+                placeholder="Enter your Gemini API key"
+                className="api-input"
+              />
+              <small>
+                Get your key from:{" "}
+                <a
+                  href="https://aistudio.google.com/app/apikey"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Google AI Studio
+                </a>
+              </small>
+            </div>
+
+            <div className="input-group">
+              <label htmlFor="fal-key">Fal AI API Key</label>
+              <input
+                id="fal-key"
+                type="password"
+                value={apiKeys.falKey}
+                onChange={(e) => handleKeyChange("falKey", e.target.value)}
+                placeholder="Enter your Fal AI key"
+                className="api-input"
+              />
+              <small>
+                Get your key from:{" "}
+                <a
+                  href="https://fal.ai/dashboard/api-keys"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Fal AI Dashboard
+                </a>
+              </small>
+            </div>
+
+            <div className="settings-buttons">
+              <button
+                onClick={() => setShowSettings(false)}
+                className="cancel-btn"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveApiKeys}
+                disabled={!apiKeys.geminiKey || !apiKeys.falKey}
+                className="save-btn"
+              >
+                Save Keys
+              </button>
+            </div>
+          </div>
+
+          <div className="security-note">
+            <p>
+              <strong>🔒 Security Note:</strong> Your API keys are stored
+              locally in your browser and never sent to any server except the
+              official AI providers.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (showGenerator) {
     return (
@@ -166,13 +288,44 @@ export default function Page() {
               rows={4}
               disabled={isGenerating}
             />
-            <button
-              onClick={generateStory}
-              disabled={!prompt.trim() || isGenerating}
-              className="generate-btn"
-            >
-              {isGenerating ? "Generating Story..." : "Generate Story"}
-            </button>
+            
+            <div className="page-count-container">
+              <label htmlFor="page-count">Number of Pages:</label>
+              <select
+                id="page-count"
+                value={pageCount}
+                onChange={(e) => setPageCount(Number(e.target.value))}
+                className="page-count-select"
+                disabled={isGenerating}
+              >
+                {[...Array(10)].map((_, i) => (
+                  <option key={i + 1} value={i + 1}>
+                    {i + 1} page{i + 1 > 1 ? 's' : ''}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="action-buttons">
+              <button
+                onClick={() => setShowSettings(true)}
+                className="settings-btn"
+                disabled={isGenerating}
+              >
+                ⚙️ API Settings
+              </button>
+              <button
+                onClick={generateStory}
+                disabled={
+                  !prompt.trim() ||
+                  isGenerating ||
+                  !apiKeys.geminiKey ||
+                  !apiKeys.falKey
+                }
+                className="generate-btn"
+              >
+                {isGenerating ? "Generating Story..." : "Generate Story"}
+              </button>
+            </div>
           </div>
 
           {isGenerating && (
@@ -183,6 +336,102 @@ export default function Page() {
               </p>
             </div>
           )}
+
+          {/* API Keys Status */}
+          <div className="api-status">
+            <p>
+              Status:
+              {apiKeys.geminiKey && apiKeys.falKey ? (
+                <span className="status-ready">✅ Ready to generate</span>
+              ) : (
+                <span className="status-needs-setup">
+                  ⚠️ Please configure API keys
+                </span>
+              )}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Settings Dialog
+  if (showSettings) {
+    return (
+      <div className="story-container">
+        <div className="settings-container">
+          <h1>API Settings</h1>
+          <p>Enter your API keys to generate AI stories and illustrations.</p>
+
+          <div className="settings-form">
+            <div className="input-group">
+              <label htmlFor="gemini-key">Google Gemini API Key</label>
+              <input
+                id="gemini-key"
+                type="password"
+                value={apiKeys.geminiKey}
+                onChange={(e) => handleKeyChange("geminiKey", e.target.value)}
+                placeholder="Enter your Gemini API key"
+                className="api-input"
+              />
+              <small>
+                Get your key from:{" "}
+                <a
+                  href="https://aistudio.google.com/app/apikey"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Google AI Studio
+                </a>
+              </small>
+            </div>
+
+            <div className="input-group">
+              <label htmlFor="fal-key">Fal AI API Key</label>
+              <input
+                id="fal-key"
+                type="password"
+                value={apiKeys.falKey}
+                onChange={(e) => handleKeyChange("falKey", e.target.value)}
+                placeholder="Enter your Fal AI key"
+                className="api-input"
+              />
+              <small>
+                Get your key from:{" "}
+                <a
+                  href="https://fal.ai/dashboard/api-keys"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Fal AI Dashboard
+                </a>
+              </small>
+            </div>
+
+            <div className="settings-buttons">
+              <button
+                onClick={() => setShowSettings(false)}
+                className="cancel-btn"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveApiKeys}
+                disabled={!apiKeys.geminiKey || !apiKeys.falKey}
+                className="save-btn"
+              >
+                Save Keys
+              </button>
+            </div>
+          </div>
+
+          <div className="security-note">
+            <p>
+              <strong>🔒 Security Note:</strong> Your API keys are stored
+              locally in your browser and never sent to any server except the
+              official AI providers.
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -198,6 +447,14 @@ export default function Page() {
           aria-label="Create new story"
         >
           ✏️ New Story
+        </button>
+        <button
+          type="button"
+          className="nav-btn reset-btn"
+          onClick={() => setShowSettings(true)}
+          aria-label="Open settings"
+        >
+          ⚙️ Settings
         </button>
         <button
           type="button"
@@ -221,7 +478,7 @@ export default function Page() {
       </div>
       <div className="book-container">
         <div className="flip-book" ref={flipBookRef}>
-          {/* Cover Page */}
+          {/* Cover Page - Single page centered */}
           <div className="page page-cover page-cover-top" data-density="hard">
             <div className="page-content">
               {story?.coverImageUrl ? (
@@ -234,7 +491,7 @@ export default function Page() {
                   <div className="cover-text">
                     <h1>{story.title}</h1>
                     <p className="subtitle">
-                      {story.genre} • Ages {story.targetAge}
+                      {story.genre}
                     </p>
                   </div>
                 </div>
@@ -242,12 +499,15 @@ export default function Page() {
                 <>
                   <h1>{story?.title || "Generated Story"}</h1>
                   <p className="subtitle">
-                    {story?.genre} • Ages {story?.targetAge}
+                    {story?.genre}
                   </p>
                 </>
               )}
             </div>
           </div>
+          
+          {/* Empty page after cover to make it display as single */}
+          <div className="page" style={{visibility: 'hidden'}} data-density="hard"></div>
 
           {/* Story Pages - Split into separate left and right pages */}
           {story?.pages.map((page) => (
@@ -270,7 +530,7 @@ export default function Page() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Right Page - Text */}
               <div className="page page-right-only">
                 <div className="page-content">
@@ -284,7 +544,10 @@ export default function Page() {
             </React.Fragment>
           ))}
 
-          {/* End Page */}
+          {/* Empty page before end to make it display as single */}
+          <div className="page" style={{visibility: 'hidden'}} data-density="hard"></div>
+          
+          {/* End Page - Single page centered */}
           <div
             className="page page-cover page-cover-bottom"
             data-density="hard"
